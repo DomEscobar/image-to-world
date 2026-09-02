@@ -7,6 +7,7 @@ import io
 import os
 import sys
 import urllib.request
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -85,6 +86,43 @@ def run_local(source: Path):
     return [record["segmentation"] for record in records if "segmentation" in record]
 
 
+def _masks_from_zip(archive: Path):
+    masks = []
+    with zipfile.ZipFile(archive) as bundle:
+        for member in sorted(bundle.infolist(), key=lambda item: item.filename):
+            name = Path(member.filename)
+            if member.is_dir() or name.name != member.filename or not name.name.startswith("raw_") or name.suffix.lower() != ".png":
+                continue
+            masks.append(np.asarray(Image.open(io.BytesIO(bundle.read(member))).convert("L")))
+    return masks
+
+
+def run_huggingface(source: Path):
+    try:
+        from gradio_client import Client, handle_file
+    except ImportError as error:
+        raise SystemExit("huggingface backend requires the optional gradio-client package") from error
+    space = os.environ.get("HF_SPACE", "neridonk/image-to-world-sam2")
+    token = os.environ.get("HF_TOKEN")
+    points = int(os.environ.get("SAM2_POINTS_PER_SIDE", "16"))
+    threshold = float(os.environ.get("SAM2_PRED_IOU", "0.8"))
+    client = Client(space, token=token, verbose=False)
+    result = client.predict(
+        image=handle_file(str(source)),
+        points_per_side=points,
+        pred_iou_thresh=threshold,
+        api_name="/segment",
+    )
+    if isinstance(result, (list, tuple)):
+        result = result[0] if result else None
+    if isinstance(result, dict):
+        result = result.get("path") or result.get("url")
+    archive = Path(str(result)) if result else None
+    if archive is None or not archive.is_file() or not zipfile.is_zipfile(archive):
+        raise RuntimeError("Hugging Face Space returned no readable mask ZIP")
+    return _masks_from_zip(archive)
+
+
 def run_replicate(source: Path):
     if not os.environ.get("REPLICATE_API_TOKEN"):
         raise SystemExit("replicate backend is not configured; set REPLICATE_API_TOKEN")
@@ -105,11 +143,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--backend", choices=["fal", "local", "replicate"], default="fal")
+    parser.add_argument("--backend", choices=["fal", "huggingface", "local", "replicate"], default="fal")
     args = parser.parse_args()
     with Image.open(args.source) as image:
         size = image.size
-    runners = {"fal": run_fal, "local": run_local, "replicate": run_replicate}
+    runners = {"fal": run_fal, "huggingface": run_huggingface, "local": run_local, "replicate": run_replicate}
     try:
         masks = runners[args.backend](args.source)
         _write(masks, args.out, size)

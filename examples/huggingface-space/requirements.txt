@@ -1,0 +1,6 @@
+spaces
+numpy
+Pillow
+torch>=2.5.1
+torchvision>=0.20.1
+git+https://github.com/facebookresearch/sam2.git

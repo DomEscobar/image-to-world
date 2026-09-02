@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
 import copy
+import io
 import json
 import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +19,7 @@ import build_world  # noqa: E402
 import contours  # noqa: E402
 import filter_masks  # noqa: E402
 import validate_world  # noqa: E402
+import segment  # noqa: E402
 
 
 def create_fixture(root):
@@ -152,6 +155,21 @@ class PipelineTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(variable, result.stderr)
+
+    def test_huggingface_mask_zip_contract(self):
+        archive = self.root / "masks.zip"
+        expected = np.zeros((12, 18), dtype=np.uint8)
+        expected[2:8, 4:11] = 255
+        with zipfile.ZipFile(archive, "w") as bundle:
+            payload = io.BytesIO()
+            Image.fromarray(expected, "L").save(payload, format="PNG")
+            raw = payload.getvalue()
+            bundle.writestr("raw_000.png", raw)
+            bundle.writestr("nested/raw_001.png", raw)
+            bundle.writestr("notes.txt", "ignored")
+        masks = segment._masks_from_zip(archive)
+        self.assertEqual(len(masks), 1)
+        self.assertTrue(np.array_equal(masks[0], expected))
 
 
 if __name__ == "__main__":

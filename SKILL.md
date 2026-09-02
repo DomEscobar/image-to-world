@@ -29,9 +29,9 @@ Never reimplement the scripts inline, never eyeball contours, never let the sema
 
 3. **Segment.** Run:
    ```bash
-   python scripts/segment.py work/source.png --out work/masks/ --backend fal
+   python scripts/segment.py work/source.png --out work/masks/ --backend huggingface
    ```
-   Check that numbered single-channel masks were created at the exact source dimensions. If no backend is configured, stop and name the environment variable reported by the script. Never fabricate masks.
+   Use `huggingface` for the deployed ZeroGPU Space, `fal` for FAL, `local` for an installed checkpoint, or `replicate` for Replicate. Set `HF_SPACE` to override the default `neridonk/image-to-world-sam2` Space; set `HF_TOKEN` to use the signed-in account's ZeroGPU quota. Check that numbered single-channel masks were created at the exact source dimensions. If no backend is configured, stop and name the environment variable reported by the script. Never fabricate masks.
 
 4. **Filter.** Run:
    ```bash
@@ -79,7 +79,7 @@ Skip to step 8, then repair only what the symptom requires.
 - `references/filtering.md` — filter behavior and deliberate threshold changes.
 - `references/renderers.md` — safe consumption in Phaser, Godot, canvas, and rule interpreters.
 - `scripts/normalize.py` — sanitize, orient, resize, and inspect input.
-- `scripts/segment.py` — optional SAM backends to raw masks. The `fal-ai/sam2/auto-segment` `individual_masks` response shape remains an open item until the first credentialed live run; do not claim it has been live-verified.
+- `scripts/segment.py` — optional Hugging Face ZeroGPU, FAL, local, or Replicate SAM backends to raw masks. The `fal-ai/sam2/auto-segment` `individual_masks` response shape remains an open item until a funded live run completes; do not claim it has been live-verified.
 - `scripts/filter_masks.py` — deterministic filtering and contact sheet creation.
 - `scripts/contours.py` — masks to bbox-local polygons.
 - `scripts/build_world.py` — assemble assets and `world.json`.

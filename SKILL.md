@@ -1,11 +1,17 @@
 ---
 name: image-to-world
-description: Turn a single image into a structured 2D world with world.json, cut-out asset PNGs, and collision polygons for Phaser, Godot, three.js, or custom engines. Use when making an image playable, interactive, or explorable; turning art, drawings, sketches, maps, or screenshots into a game, level, scene, or world; extracting sprites, assets, or collision shapes from a picture; or building any pipeline mentioning segmentation, SAM, or image-to-level conversion. The request need not say "world" or "schema". Also use when an existing world.json needs validation, repair, re-labeling, or re-rendering.
+description: Turn a single image into structured 2D world data with world.json, cut-out PNGs, and collision polygons. Use for asset extraction, explorable scenes, SAM/image-to-level pipelines, or validation and repair of an existing world.json. For a faithful playable reconstruction of a game screenshot, use screenshot-to-game instead.
 ---
 
 # Image to World
 
 Produce data, never executable game logic, so the result can be validated, cached, diffed, repaired, and safely interpreted by an engine.
+
+## Route before processing
+
+- Use this skill when the deliverable is structured world data, reusable cut-outs, collision shapes, or an explorable interpretation.
+- Use `screenshot-to-game` when the user asks to recreate, clone, or make the pictured game itself. A game screenshot requires HUD parsing, scene relationships, a background plate, mechanics data, and browser verification that this asset pipeline does not provide.
+- When wording is ambiguous, inspect the input. A screenshot with HUD, counters, minimaps, inventory, projectiles, or an existing game interface defaults to `screenshot-to-game`; art, maps, and standalone scenes default here.
 
 ## The split that makes this work
 

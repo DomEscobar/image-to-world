@@ -1,0 +1,414 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/image-to-world/world.schema.json",
+  "title": "Image to World v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "mode",
+    "width",
+    "height",
+    "tuning",
+    "assets",
+    "rules"
+  ],
+  "properties": {
+    "version": {
+      "const": 2
+    },
+    "mode": {
+      "enum": [
+        "float",
+        "sandbox",
+        "side",
+        "topdown"
+      ]
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "background": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
+    "tuning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gravityY",
+        "moveSpeed",
+        "jumpVelocity",
+        "drag"
+      ],
+      "properties": {
+        "gravityY": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2.5
+        },
+        "moveSpeed": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10
+        },
+        "jumpVelocity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "drag": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.2
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "file",
+          "role",
+          "bbox",
+          "z",
+          "polygon"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^asset_[0-9]{2,}$"
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "collectible",
+              "decor",
+              "goal",
+              "ground",
+              "hazard",
+              "platform",
+              "player"
+            ]
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
+            "items": {
+              "type": "integer"
+            }
+          },
+          "areaRatio": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "z": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "polygon": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 24,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "trigger",
+          "action"
+        ],
+        "properties": {
+          "trigger": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "on",
+                  "a",
+                  "b"
+                ],
+                "properties": {
+                  "on": {
+                    "const": "collide"
+                  },
+                  "a": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "b": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "on"
+                ],
+                "properties": {
+                  "on": {
+                    "const": "collect_all"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "on",
+                  "count"
+                ],
+                "properties": {
+                  "on": {
+                    "const": "collect_count"
+                  },
+                  "count": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 99
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "on",
+                  "every"
+                ],
+                "properties": {
+                  "on": {
+                    "const": "timer"
+                  },
+                  "every": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 30
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "on"
+                ],
+                "properties": {
+                  "on": {
+                    "const": "start"
+                  }
+                }
+              }
+            ]
+          },
+          "action": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "respawn"
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "win"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "lose"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do",
+                  "target"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "remove"
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do",
+                  "target"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "open"
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do",
+                  "target"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "spawn"
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do",
+                  "amount"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "score"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "minimum": -100,
+                    "maximum": 100
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "do",
+                  "target",
+                  "dx",
+                  "dy"
+                ],
+                "properties": {
+                  "do": {
+                    "const": "move"
+                  },
+                  "target": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "dx": {
+                    "type": "number",
+                    "minimum": -400,
+                    "maximum": 400
+                  },
+                  "dy": {
+                    "type": "number",
+                    "minimum": -400,
+                    "maximum": 400
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "not": {
+          "properties": {
+            "trigger": {
+              "properties": {
+                "on": {
+                  "const": "start"
+                }
+              },
+              "required": [
+                "on"
+              ]
+            },
+            "action": {
+              "properties": {
+                "do": {
+                  "const": "win"
+                }
+              },
+              "required": [
+                "do"
+              ]
+            }
+          },
+          "required": [
+            "trigger",
+            "action"
+          ]
+        }
+      }
+    }
+  }
+}

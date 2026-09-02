@@ -37,7 +37,7 @@ Never reimplement the scripts inline, never eyeball contours, never let the sema
    ```bash
    python scripts/filter_masks.py work/masks/ --out work/filtered/ --source work/source.png --contact work/contact.png
    ```
-   Check the JSON report and inspect the contact sheet. If fewer than two masks survive, stop, report which filter removed the most, and ask for a clearer image. Do not auto-loosen thresholds; read [references/filtering.md](references/filtering.md) only when the defaults need deliberate adjustment.
+   Check the JSON report and inspect the contact sheet. If an obvious required subject such as the player is missing, rerun the Hugging Face backend once with `SAM2_FOCUS_X` and `SAM2_FOCUS_Y` set to a point inside that subject, then filter again; this asks SAM for the missing object without inventing its contour. If fewer than two masks survive, stop, report which filter removed the most, and ask for a clearer image. Do not auto-loosen thresholds; read [references/filtering.md](references/filtering.md) only when the defaults need deliberate adjustment.
 
 5. **LABEL THE WORLD.** Inspect `work/contact.png`; it is the complete visual input to this semantic step. Read [references/modes.md](references/modes.md), choose the mode from visual evidence, and write `work/labels.json` using [references/schema.md](references/schema.md). Assign every kept index a useful label, role, and z value. Choose exactly one `player`. Verify every badge number is readable before labeling; an unreadable contact sheet silently corrupts the world.
 

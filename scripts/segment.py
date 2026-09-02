@@ -106,11 +106,15 @@ def run_huggingface(source: Path):
     token = os.environ.get("HF_TOKEN")
     points = int(os.environ.get("SAM2_POINTS_PER_SIDE", "16"))
     threshold = float(os.environ.get("SAM2_PRED_IOU", "0.8"))
+    focus_x = float(os.environ.get("SAM2_FOCUS_X", "-1"))
+    focus_y = float(os.environ.get("SAM2_FOCUS_Y", "-1"))
     client = Client(space, token=token, verbose=False)
     result = client.predict(
         image=handle_file(str(source)),
         points_per_side=points,
         pred_iou_thresh=threshold,
+        focus_x=focus_x,
+        focus_y=focus_y,
         api_name="/segment",
     )
     if isinstance(result, (list, tuple)):

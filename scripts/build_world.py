@@ -68,10 +68,18 @@ def build(work: Path, output: Path, epsilon_factor: float):
             print(f"warning: asset {index} produced no polygon and was skipped", file=sys.stderr)
             continue
         x, y, width, height = bbox
-        crop = source.crop((x, y, x + width, y + height)).convert("RGBA")
-        alpha = Image.fromarray((mask_array[y:y + height, x:x + width] * 255).astype(np.uint8), "L")
-        crop.putalpha(alpha)
         filename = f"asset_{index:02d}.png"
+        recovered_path = work / "recovered" / filename
+        if recovered_path.exists():
+            with Image.open(recovered_path) as recovered:
+                crop = recovered.convert("RGBA")
+            if crop.size != (width, height):
+                crop = crop.resize((width, height), Image.Resampling.LANCZOS)
+            print(f"asset {index} uses recovered cut-out {recovered_path}")
+        else:
+            crop = source.crop((x, y, x + width, y + height)).convert("RGBA")
+            alpha = Image.fromarray((mask_array[y:y + height, x:x + width] * 255).astype(np.uint8), "L")
+            crop.putalpha(alpha)
         crop.save(assets_dir / filename)
         label = label_entries.get(index, {})
         assets.append({

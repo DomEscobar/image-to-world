@@ -18,6 +18,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import build_world  # noqa: E402
 import contours  # noqa: E402
 import filter_masks  # noqa: E402
+import register_asset  # noqa: E402
+import render_preview  # noqa: E402
 import validate_world  # noqa: E402
 import segment  # noqa: E402
 
@@ -170,6 +172,41 @@ class PipelineTests(unittest.TestCase):
         masks = segment._masks_from_zip(archive)
         self.assertEqual(len(masks), 1)
         self.assertTrue(np.array_equal(masks[0], expected))
+
+    def test_recovered_asset_registration_build_and_preview(self):
+        recovered = self.root / "recovered.png"
+        image = Image.new("RGBA", (100, 120), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        draw.ellipse((10, 5, 90, 115), fill=(255, 40, 80, 255))
+        image.save(recovered)
+        register_asset.register(self.work, recovered, [500, 180, 100, 120], index=1)
+        labels = {
+            "mode": "side",
+            "assets": [
+                {"index": item["index"], "label": f"object {item['index']}", "role": "player" if item["index"] == 1 else "decor", "z": 50}
+                for item in self.manifest["assets"]
+            ],
+            "rules": [],
+        }
+        (self.work / "labels.json").write_text(json.dumps(labels), encoding="utf-8")
+        output = self.root / "out"
+        world = build_world.build(self.work, output, 0.01)
+        asset = next(item for item in world["assets"] if item["id"] == "asset_01")
+        with Image.open(output / asset["file"]) as built:
+            self.assertEqual(built.convert("RGBA").getpixel((built.width // 2, built.height // 2))[:3], (255, 40, 80))
+        preview = output / "verification.png"
+        render_preview.render(output / "world.json", preview)
+        self.assertTrue(preview.exists())
+        with Image.open(preview) as board:
+            self.assertGreater(board.height, world["height"])
+
+    def test_wavespeed_recovery_names_missing_environment(self):
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "wavespeed_asset.py"), "--prompt", "one coin", "--out", str(self.root / "coin.png")],
+            text=True, capture_output=True, env={}, check=False,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("WAVESPEED_API_KEY", result.stderr)
 
 
 if __name__ == "__main__":

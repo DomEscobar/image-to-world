@@ -22,4 +22,4 @@ Nesting divides by `min(areaA, areaB)`, not union. A small mask fully inside a l
 
 The script exits instead of auto-loosening when fewer than two masks survive. Auto-loosening converts a clear “this image will not work” into a world full of noise fragments; the failure then resurfaces much later as an unplayable result nobody can explain. Read the report, identify the dominant filter, and prefer a clearer image before changing one threshold deliberately.
 
-The contact sheet is the entire input to semantic labeling. Unreadable, overlapping, or object-covering numbers produce wrong labels regardless of segmentation quality, so treat badge clarity as a hard precondition.
+The contact sheet is the primary input to semantic labeling, supplemented only by explicitly recovered assets. Unreadable, overlapping, or object-covering numbers produce wrong labels regardless of segmentation quality, so treat badge clarity as a hard precondition.
